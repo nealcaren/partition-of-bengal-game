@@ -255,6 +255,10 @@ function updateVersionBadge(version) {
   }
 }
 
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 function startDispatchCycle() {
   if (!waitingOverlay) return;
   dispatchScene = DISPATCH_SCENES[Math.floor(Math.random() * DISPATCH_SCENES.length)];
@@ -436,6 +440,7 @@ function showStartingScenario() {
   narrationEl.innerHTML = applyGlossaryMarkup(convertTimelineBlocks(safe));
   populateOptions(STARTING_OPTIONS);
   updateVersionBadge(INITIAL_STATE.version || GAME_VERSION);
+  scrollToTop();
 }
 
 function renderStats(state) {
@@ -532,6 +537,7 @@ function renderTurn(data) {
   }
   populateOptions(data.options || []);
   document.getElementById('userInput').value = '';
+  scrollToTop();
 }
 
 function populateOptions(options) {
