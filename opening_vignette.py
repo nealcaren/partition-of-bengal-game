@@ -19,11 +19,22 @@ But you've read the intelligence reports. You know what the Bengali press is say
 
 **Amrita Bazar Patrika** (Bengali nationalist): "The Partition is a dagger aimed at Bengali unity—splitting Hindu from Muslim, severing our cultural heartland."
 
-**The moderate memorandum** from Surendranath Banerjee's Congress faction warns of "profound disappointment" but counsels petition and constitutional protest.
+**The Bengalee** (edited by Surendranath Banerjee): "Partition invites profound disappointment, yet our response must remain constitutional—petitions, not bombs."
 
 But there are newer voices too. Younger men—Bipin Chandra Pal, Aurobindo Ghose—speak of *swadeshi* (own-country), of boycotting British goods entirely. Of meeting foreign rule not with petitions, but with resistance.
 
 The question everyone whispers: Is this really about administration? Or is it "divide and rule"?""",
+            "button": "Continue"
+        },
+        {
+            "title": "Calcutta’s Crossroads",
+            "text": """The evening salons grow sharp-tongued. Surendranath Banerjee’s moderates draft petitions and warn against rashness. Bal Tilak and V. D. Savarkar correspond from Poona, urging bonfires of Manchester cloth and courting martyrdom.
+
+In College Square, Congress volunteers organise *swadeshi* pickets. Across the Hugli in Howrah, police intelligence notes handbills extolling bomb-makers. Newspapers quote Bankim Chandra’s hymns to a motherland that must be defended by deed, not debate.
+
+Yet the tide is not wholly Hindu. Muslim notables in Dacca, echoing Syed Ahmad Khan’s counsel, caution that a reckless agitation may leave their community exposed should the Raj give way. They whisper of forming a loyal association to steady the ship.
+
+Every decision you take will shift the balance between these camps. Appease one, and the others read betrayal.""",
             "button": "Continue"
         },
         {
@@ -51,7 +62,7 @@ The leather folder contains your initial briefing papers. The choices you make i
 
 **Reputation** — In London and Delhi, are you judged a steady hand or a liability to imperial governance?
 
-The game will surface the dilemmas facing colonial administrators: how to project authority without provoking revolt, how to negotiate with moderate nationalists while confronting radicals, and how economic protest became a crucible for Indian self-rule.
+The game will surface the dilemmas facing colonial administrators: balancing moderate petitions against radical plots, judging British divide-and-rule calculations, and tracking how Muslim loyalists respond to each signal you send.
 
 History remembers that the Partition was annulled in 1911. Your decisions will show why.""",
             "button": "Continue"

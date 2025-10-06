@@ -30,10 +30,11 @@ SESSIONS: Dict[str, Dict[str, Any]] = {}
 HISTORICAL_FACTS = """
 Partition of Bengal (1905) split Bengal into Eastern Bengal & Assam (capital Dacca) and a reduced Bengal (capital Calcutta).
 British rationale: administrative efficiency; Indian criticism: divide-and-rule, communal/linguistic split.
-Key figures & strands: Curzon; Minto; Indian National Congress moderates (Surendranath Banerjee, Gokhale); extremist leaders (Bipin Chandra Pal, Aurobindo Ghose, Lajpat Rai); Rabindranath Tagore.
-Swadeshi Movement: boycott of British goods; promotion of indigenous industry (khadi, handlooms); picketing; bonfires of foreign cloth; national education initiatives.
-Key issues: press controls (vernacular press), Section 144 orders, sedition charges, deportations without trial, police lathi charges, student strikes.
-Outcomes: Deepened anti-colonial mobilization; partition **annulled in 1911**, capital moved to Delhi.
+Hindu revivalists such as Bal Tilak, V. D. Savarkar, and Bipin Chandra Pal championed swadeshi boycotts and occasionally violent resistance; moderates like Surendranath Banerjee and Gopal Krishna Gokhale pressed for constitutional protest.
+Swadeshi tactics included bonfires of British cloth, shop pickets, parallel education, and promotion of indigenous industry (khadi, handlooms) in Bengal and Poona.
+Muslim elites, drawing on Syed Ahmad Khan’s loyalist vision, founded the All-India Muslim League in 1906 to defend community interests while cooperating with the Raj; British separate electorates for Muslims angered many Congress leaders.
+Key flashpoints: Section 144 restrictions, Vernacular Press Act censorship, sedition prosecutions (Tilak), Alipore conspiracy and assassination attempts on Magistrate Kingsford.
+Outcomes: Sharpened Hindu-Muslim political divergence; partition **annulled in 1911**, capital moved to Delhi; radical nationalism persisted alongside Muslim loyalism.
 Use period language with care; avoid anachronism; keep neutral instructional tone while roleplaying officials’ briefs.
 """
 
@@ -49,10 +50,13 @@ REQUIREMENTS:
 - After each player input, update: legitimacy, local_stability, swadeshi_momentum, reputation.
 - Advance time sensibly (days/weeks).
 - Offer 3–5 actionable choices, each with short rationale.
+- Include a 1-2 sentence teaching note each turn highlighting key takeaways.
+- Emphasize contrasts between Hindu moderates and radicals, British divide-and-rule tactics, and Muslim League loyalism when relevant.
 
 SAFETY & PEDAGOGY:
 - Do not generate hate speech or endorse ethnic/religious hatred.
 - Use neutral framing for communal tensions; emphasize complexity.
+- Contextualize violence (bombings, assassinations, executions) without glamorizing; acknowledge competing contemporary views.
 - If the player requests purely punitive or incendiary actions, warn about historical consequences and provide tempered alternatives.
 
 HISTORICAL FACTS YOU MUST RESPECT:
@@ -102,11 +106,15 @@ Always return a JSON object with keys:
 - "state": updated game state dict (date, legitimacy, local_stability, swadeshi_momentum, reputation),
 - optional "game_status" when the campaign ends.
 
+Ensure exactly one option invites the player to gather information (e.g., interview a figure, request a report, conduct reconnaissance) so the learner can explore context before acting without overwhelming the choice set.
+
 Victory and defeat thresholds:
 - Defeat if legitimacy < 20, local_stability < 20, or swadeshi_momentum > 85.
 - Victory if the date reaches or exceeds {END_DATE} while avoiding those defeats.
 
 If the game ends, set "game_status" to {{"status": "victory"|"defeat", "reason": one of legitimacy_collapse, stability_collapse, swadeshi_unstoppable, survived}} and craft an ending narration acknowledging the outcome.
+
+Anchor narration to the textbook emphasis: highlight tensions between Congress moderates and Hindu radicals, explain how swadeshi tactics escalate, note Muslim League loyalism and British divide-and-rule strategy when appropriate, and define unfamiliar terms or figures succinctly.
 
 Keep numbers in 0–100. Advance date realistically (days/weeks).
 Never include URLs. Avoid modern slang. Keep tone immersive but instructional.
