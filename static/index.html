@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Divide and Rule: The Bengal Partition Crisis of 1905</title>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+<header>
+  <h1>Divide and Rule: The Bengal Partition Crisis of 1905</h1>
+</header>
+<main>
+  <div class="panel vignette-panel" id="vignettePanel">
+    <div class="vignette-header">
+      <h2 id="vignetteTitle">Loading briefing…</h2>
+    </div>
+    <div id="vignetteText" class="vignette-text"></div>
+    <button id="vignetteNext" class="cta-button" type="button">Continue</button>
+  </div>
+
+  <div class="panel hidden" id="statsPanel">
+    <div id="stats" class="stats"></div>
+  </div>
+
+  <div class="panel hidden" id="gamePanel">
+    <div id="narration" class="narration"></div>
+    <div id="options" class="options"></div>
+    <div id="statusMessage" class="status"></div>
+    <div class="inputbar">
+      <input id="userInput" type="text" placeholder="Type your decision (or click an option)…"/>
+      <button class="send" id="sendBtn">Send</button>
+    </div>
+    <button class="secondary hidden" id="restartBtn" type="button">Start New Game</button>
+    <div class="footer">Tip: you can type a custom policy (e.g., “Convene moderate leaders and promise a review in 6 months”).</div>
+  </div>
+  <div id="waitingOverlay" class="waiting-overlay hidden" role="status" aria-live="assertive">
+    <div class="waiting-dialog">
+      <div class="waiting-header">Dispatch Pending</div>
+      <p>The telegraph clerks labour furiously; a reply from Calcutta is en route…</p>
+    </div>
+  </div>
+</main>
+
+<script>
+const FALLBACK_VIGNETTE_PAGES = [
+  {
+    title: "July 1905 — Simla",
+    text: `The monsoon clouds hang heavy over the Viceregal Lodge. You've served as private secretary to Lord Curzon for eighteen months now, long enough to read the particular tension in his jawline as he slides a leather portfolio across the mahogany desk.
+
+"The Partition will be announced within weeks," he says. "Bengal is unwieldy—78 million souls, impossible to govern effectively. We're creating two provinces: a Muslim-majority east with its capital at Dacca, and a Hindu-majority west centered on Calcutta."
+
+On paper, it's administrative reform. The files cite population density, revenue collection challenges, the difficulty of managing such vast territory.
+
+But you've read the intelligence reports. You know what the Bengali press is saying.`,
+    button: "Continue"
+  },
+  {
+    title: "The Calcutta Papers",
+    text: `Three newspapers sit before you, each telling a different story:
+
+**The Englishman** (British-owned): "Lord Curzon's masterstroke will bring efficient governance to India's most populous province."
+
+**Amrita Bazar Patrika** (Bengali nationalist): "The Partition is a dagger aimed at Bengali unity—splitting Hindu from Muslim, severing our cultural heartland."
+
+**The moderate memorandum** from Surendranath Banerjee's Congress faction warns of "profound disappointment" but counsels petition and constitutional protest.
+
+But there are newer voices too. Younger men—Bipin Chandra Pal, Aurobindo Ghose—speak of *swadeshi* (own-country), of boycotting British goods entirely. Of meeting foreign rule not with petitions, but with resistance.
+
+The question everyone whispers: Is this really about administration? Or is it "divide and rule"?`,
+    button: "Continue"
+  },
+  {
+    title: "Your Task",
+    text: `Lord Curzon leans back. "The decision is made. London supports it. But implementation—that's where empires are won or lost."
+
+He needs you to manage what comes next. The official announcement. The inevitable protests. The competing factions within the Indian political class—moderates who still believe in petitions and constitutional reform, and extremists who speak openly of driving the British from India.
+
+"You'll have broad discretion," Curzon continues. "Suppress sedition, certainly. But also—consider concessions where prudent. Industrial grants, educational reforms, consultation with loyal elements. We must maintain order without igniting rebellion."
+
+He pauses at the door. "The Partition is administrative necessity. But Bengal is... passionate. Literate. They produce poets and revolutionaries in equal measure. Don't let it become a spark."
+
+The leather folder contains your initial briefing papers. The choices you make in the coming months will shape whether this reform strengthens British India—or begins its unraveling.`,
+    button: "Continue"
+  },
+  {
+    title: "Your Goals",
+    text: `As the Viceroy's private secretary, you must navigate the crisis of the Bengal Partition. Your decisions will be measured across four key pressures:
+
+**Legitimacy** — Does the British administration maintain credibility with Indian elites and the wider public?
+
+**Local Stability** — Can you prevent the situation from tipping into riots, strikes, or violence?
+
+**Swadeshi Momentum** — The boycott movement is growing. Will you contain it, redirect it, or concede ground?
+
+**Reputation** — In London and Delhi, are you judged a steady hand or a liability to imperial governance?
+
+The game will surface the dilemmas facing colonial administrators: how to project authority without provoking revolt, how to negotiate with moderate nationalists while confronting radicals, and how economic protest became a crucible for Indian self-rule.
+
+History remembers that the Partition was annulled in 1911. Your decisions will show why.`,
+    button: "Continue"
+  },
+  {
+    title: "Game Rules",
+    text: `Your post lasts only if the Raj believes you can keep Bengal orderly.
+
+You will be **removed from your post** if any of the following happen:
+- Legitimacy falls below 20 — your administration loses the confidence of Calcutta and London alike.
+- Local Stability falls below 20 — unrest overwhelms your ability to govern.
+- Swadeshi Momentum rises above 85 — the boycott becomes unstoppable and the partition collapses.
+
+You will **survive to the end of 1908** if none of those crises occur before the calendar reaches 31 December 1908.
+
+Every turn advances time; every decision shifts the numbers. Choose with care.`,
+    button: "Begin Game"
+  }
+];
+
+const STARTING_SCENARIO = `Calcutta, July 1905. Your first morning briefing arrives. The Partition announcement is set for October. Between now and then, you must shape the ground.
+
+Your desk holds:
+- Intelligence reports on organizing committees in Calcutta colleges
+- Memoranda from moderate leaders requesting audience with the Viceroy
+- Police recommendations for preemptive restrictions on public meetings
+- A proposal from the Commerce Department for grants to indigenous industries
+
+The city watches. Merchants whisper of boycott. What is your first move?`;
+
+const STARTING_OPTIONS = [
+  "Announce the partition's administrative merits and launch a public communication tour.",
+  "Quietly consult moderate leaders such as Surendranath Banerjee and postpone enforcement deadlines.",
+  "Preemptively restrict seditious gatherings near Calcutta University and key cloth bazaars.",
+  "Propose a swadeshi-friendly industrial grant to defuse boycott momentum while proceeding."
+];
+
+const INITIAL_STATE = {
+  date: '1905-07-15',
+  legitimacy: 60,
+  local_stability: 60,
+  swadeshi_momentum: 40,
+  reputation: 50
+};
+
+let sessionId = null;
+let selectedOptionButton = null;
+let selectedOptionText = '';
+let vignettePages = [];
+let currentVignetteIndex = 0;
+let gameReady = false;
+let gameOver = false;
+const waitingOverlay = document.getElementById('waitingOverlay');
+let previousState = null;
+
+function setOverlayMessage(text) {
+  const paragraph = waitingOverlay ? waitingOverlay.querySelector('p') : null;
+  if (paragraph) {
+    paragraph.textContent = text;
+  }
+}
+
+function getFallbackVignette() {
+  return FALLBACK_VIGNETTE_PAGES.map(page => ({ ...page }));
+}
+
+function applyInlineMarkup(block) {
+  return block
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br/>');
+}
+
+function formatVignetteText(text) {
+  const trimmed = (text || '').trim();
+  if (!trimmed) return '';
+  return trimmed
+    .split(/\n{2,}/)
+    .map(paragraph => `<p>${applyInlineMarkup(paragraph)}</p>`)
+    .join('');
+}
+
+async function loadVignette() {
+  try {
+    const res = await fetch('/api/vignette');
+    if (!res.ok) {
+      throw new Error('Unable to fetch opening briefing.');
+    }
+    const data = await res.json();
+    if (data && Array.isArray(data.pages) && data.pages.length) {
+      vignettePages = data.pages;
+      return;
+    }
+    throw new Error('Opening briefing is empty.');
+  } catch (err) {
+    console.warn('Falling back to bundled vignette:', err);
+    vignettePages = getFallbackVignette();
+  }
+}
+
+function showVignettePage(index) {
+  if (!vignettePages.length) {
+    vignettePages = getFallbackVignette();
+  }
+  currentVignetteIndex = Math.min(Math.max(index, 0), vignettePages.length - 1);
+  const page = vignettePages[currentVignetteIndex] || {};
+  document.getElementById('vignetteTitle').textContent = page.title || 'Briefing';
+  document.getElementById('vignetteText').innerHTML = formatVignetteText(page.text || '');
+  const button = document.getElementById('vignetteNext');
+  const isLast = currentVignetteIndex === vignettePages.length - 1;
+  button.textContent = page.button || (isLast ? 'Begin Game' : 'Continue');
+}
+
+function resetInteractiveState() {
+  selectedOptionButton = null;
+  selectedOptionText = '';
+  gameOver = false;
+  const optionsBox = document.getElementById('options');
+  if (optionsBox) {
+    optionsBox.innerHTML = '';
+  }
+  const statusEl = document.getElementById('statusMessage');
+  if (statusEl) {
+    statusEl.textContent = '';
+    statusEl.classList.remove('status-victory', 'status-defeat');
+  }
+  const input = document.getElementById('userInput');
+  if (input) {
+    input.value = '';
+    input.disabled = false;
+  }
+  const sendBtn = document.getElementById('sendBtn');
+  if (sendBtn) {
+    sendBtn.disabled = false;
+  }
+  const restartBtn = document.getElementById('restartBtn');
+  if (restartBtn) {
+    restartBtn.classList.add('hidden');
+  }
+  const narration = document.getElementById('narration');
+  if (narration) {
+    narration.textContent = '';
+  }
+  previousState = null;
+}
+
+async function beginGameFlow() {
+  resetInteractiveState();
+  gameReady = false;
+  document.getElementById('vignettePanel').classList.add('hidden');
+  document.getElementById('statsPanel').classList.remove('hidden');
+  document.getElementById('gamePanel').classList.remove('hidden');
+  renderStats(INITIAL_STATE);
+  showStartingScenario();
+  const sendBtn = document.getElementById('sendBtn');
+  const input = document.getElementById('userInput');
+  sendBtn.disabled = true;
+  input.disabled = true;
+  try {
+    await createSession();
+    gameReady = true;
+    sendBtn.disabled = false;
+    input.disabled = false;
+  } catch (err) {
+    const statusEl = document.getElementById('statusMessage');
+    statusEl.textContent = 'The telegraph office reports a disruption: ' + err.message;
+    sendBtn.disabled = false;
+    input.disabled = false;
+  }
+}
+
+async function createSession() {
+  const res = await fetch('/api/new');
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || 'Unable to open a new briefing docket.');
+  }
+  const data = await res.json();
+  sessionId = data.session_id;
+}
+
+function showStartingScenario() {
+  document.getElementById('narration').textContent = STARTING_SCENARIO;
+  populateOptions(STARTING_OPTIONS);
+}
+
+function renderStats(state) {
+  const statsGrid = document.getElementById('stats');
+  if (!statsGrid || !state) {
+    return;
+  }
+  const metrics = [
+    { label: 'Legitimacy', key: 'legitimacy', value: state.legitimacy },
+    { label: 'Local Stability', key: 'local_stability', value: state.local_stability },
+    { label: 'Swadeshi Momentum', key: 'swadeshi_momentum', value: state.swadeshi_momentum },
+    { label: 'Reputation', key: 'reputation', value: state.reputation }
+  ];
+
+  const cards = metrics.map(({ label, key, value }) => {
+    const statClass = getStatClass(key, value);
+    const displayValue = value ?? '—';
+    const trendMarkup = getTrendMarkup(key, value);
+    return `
+      <div class="stat ${statClass}">
+        <span class="stat-label">${label}</span>
+        <span class="stat-value">${displayValue}${trendMarkup}</span>
+      </div>
+    `;
+  }).join('');
+
+  statsGrid.innerHTML = `
+    <div class="stat stat-date">
+      <span class="stat-label">Date</span>
+      <span class="stat-value">${state.date ?? '—'}</span>
+    </div>
+    ${cards}
+  `;
+  previousState = {
+    legitimacy: state.legitimacy,
+    local_stability: state.local_stability,
+    swadeshi_momentum: state.swadeshi_momentum,
+    reputation: state.reputation
+  };
+}
+
+function getStatClass(key, rawValue) {
+  const value = Number(rawValue);
+  if (Number.isNaN(value)) {
+    return 'stat-neutral';
+  }
+  if (key === 'swadeshi_momentum') {
+    if (value > 80) return 'stat-critical';
+    if (value > 70) return 'stat-warning';
+    if (value <= 40) return 'stat-good';
+  } else if (key === 'legitimacy' || key === 'local_stability' || key === 'reputation') {
+    if (value < 25) return 'stat-critical';
+    if (value < 35) return 'stat-warning';
+    if (value >= 70) return 'stat-good';
+  }
+  return 'stat-neutral';
+}
+
+function getTrendMarkup(key, currentValue) {
+  if (!previousState) {
+    return '';
+  }
+  const previousValue = Number(previousState[key]);
+  const currentNumber = Number(currentValue);
+  if (Number.isNaN(previousValue) || Number.isNaN(currentNumber)) {
+    return '';
+  }
+  if (previousValue === currentNumber) {
+    return '';
+  }
+  const increased = currentNumber > previousValue;
+  const beneficial = isIncreaseBeneficial(key, increased);
+  const icon = increased ? '▲' : '▼';
+  const trendClass = increased ? (beneficial ? 'trend-up-good' : 'trend-up-bad') : (beneficial ? 'trend-down-good' : 'trend-down-bad');
+  return `<span class="trend-icon ${trendClass}" aria-hidden="true">${icon}</span>`;
+}
+
+function isIncreaseBeneficial(key, increased) {
+  // Returns true if the resulting change is beneficial.
+  if (key === 'swadeshi_momentum') {
+    return !increased;
+  }
+  return increased;
+}
+
+function renderTurn(data) {
+  if (!data) return;
+  document.getElementById('narration').textContent = data.narration || '';
+  if (data.state) {
+    renderStats(data.state);
+  }
+  populateOptions(data.options || []);
+  document.getElementById('userInput').value = '';
+}
+
+function populateOptions(options) {
+  const optBox = document.getElementById('options');
+  optBox.innerHTML = '';
+  selectedOptionButton = null;
+  selectedOptionText = '';
+  (options || []).forEach(txt => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'option';
+    b.textContent = txt;
+    b.onclick = () => selectOption(b, txt);
+    optBox.appendChild(b);
+  });
+}
+
+function selectOption(button, text) {
+  const optionButtons = document.querySelectorAll('#options button.option');
+  optionButtons.forEach(btn => btn.classList.remove('selected'));
+  button.classList.add('selected');
+  selectedOptionButton = button;
+  selectedOptionText = text;
+  const input = document.getElementById('userInput');
+  input.value = text;
+}
+
+function setWaiting(isWaiting, message = '') {
+  const statusEl = document.getElementById('statusMessage');
+  const sendBtn = document.getElementById('sendBtn');
+  const input = document.getElementById('userInput');
+  const optionButtons = document.querySelectorAll('#options button.option');
+
+  if (isWaiting) {
+    statusEl.classList.remove('status-victory', 'status-defeat');
+    statusEl.textContent = '';
+    setOverlayMessage(message || 'The telegraph clerks labour furiously; a reply from Calcutta is en route…');
+    if (waitingOverlay) {
+      waitingOverlay.classList.remove('hidden');
+    }
+    sendBtn.disabled = true;
+    input.disabled = true;
+    optionButtons.forEach(btn => {
+      btn.disabled = true;
+      if (btn === selectedOptionButton) {
+        btn.classList.add('selected');
+      }
+    });
+  } else {
+    if (waitingOverlay) {
+      waitingOverlay.classList.add('hidden');
+    }
+    if (!gameOver || message) {
+      statusEl.textContent = message;
+    }
+    if (!gameOver) {
+      statusEl.classList.remove('status-victory', 'status-defeat');
+      sendBtn.disabled = false;
+      input.disabled = false;
+      optionButtons.forEach(btn => {
+        btn.disabled = false;
+      });
+    }
+  }
+}
+
+async function sendTurn(user_input, options = {}) {
+  if (!gameReady || !sessionId || gameOver) {
+    return false;
+  }
+  const { showWaiting = true } = options;
+  const payload = { session_id: sessionId, user_input };
+  if (showWaiting) {
+    setWaiting(true);
+  }
+  let success = false;
+  let followupMessage = '';
+  try {
+    const res = await fetch('/api/turn', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(t || 'Request failed');
+    }
+    const data = await res.json();
+    renderTurn(data);
+    handleGameConclusion(data.game_status);
+    success = true;
+  } catch (err) {
+    alert('Error: ' + err.message);
+    followupMessage = 'The telegraph line falters; no reply was secured: ' + err.message;
+  }
+  if (showWaiting) {
+    setWaiting(false, followupMessage);
+  } else if (followupMessage) {
+    setWaiting(false, followupMessage);
+  }
+  return success;
+}
+
+function handleGameConclusion(gameStatus) {
+  if (!gameStatus || gameStatus.status === 'ongoing') {
+    return;
+  }
+  gameOver = true;
+  const statusEl = document.getElementById('statusMessage');
+  statusEl.classList.remove('status-victory', 'status-defeat');
+  const prefix = gameStatus.status === 'victory' ? 'Victory — ' : 'Defeat — ';
+  statusEl.textContent = prefix + (gameStatus.message || '');
+  statusEl.classList.add(gameStatus.status === 'victory' ? 'status-victory' : 'status-defeat');
+
+  const sendBtn = document.getElementById('sendBtn');
+  const input = document.getElementById('userInput');
+  sendBtn.disabled = true;
+  input.disabled = true;
+  document.querySelectorAll('#options button.option').forEach(btn => {
+    btn.disabled = true;
+  });
+  document.getElementById('restartBtn').classList.remove('hidden');
+}
+
+function advanceVignette() {
+  if (currentVignetteIndex < vignettePages.length - 1) {
+    showVignettePage(currentVignetteIndex + 1);
+  } else {
+    beginGameFlow();
+  }
+}
+
+function restartGame() {
+  resetInteractiveState();
+  sessionId = null;
+  gameReady = false;
+  document.getElementById('gamePanel').classList.add('hidden');
+  document.getElementById('statsPanel').classList.add('hidden');
+  document.getElementById('vignettePanel').classList.remove('hidden');
+  currentVignetteIndex = 0;
+  showVignettePage(0);
+}
+
+document.getElementById('vignetteNext').addEventListener('click', advanceVignette);
+
+document.getElementById('sendBtn').addEventListener('click', async () => {
+  const inputEl = document.getElementById('userInput');
+  const originalText = inputEl.value;
+  const text = originalText.trim();
+  const optionText = selectedOptionText.trim();
+  const inputToSend = text || optionText;
+  if (!inputToSend) return;
+  const wasSuccessful = await sendTurn(inputToSend);
+  if (wasSuccessful) {
+    inputEl.value = '';
+  } else {
+    inputEl.value = originalText;
+  }
+});
+
+document.getElementById('userInput').addEventListener('input', (event) => {
+  if (!selectedOptionButton) return;
+  if (event.target.value.trim() !== selectedOptionText.trim()) {
+    selectedOptionButton.classList.remove('selected');
+    selectedOptionButton = null;
+    selectedOptionText = '';
+  }
+});
+
+document.getElementById('restartBtn').addEventListener('click', restartGame);
+
+(async function init() {
+  await loadVignette();
+  if (!vignettePages.length) {
+    vignettePages = getFallbackVignette();
+  }
+  showVignettePage(0);
+})();
+</script>
+</body>
+</html>

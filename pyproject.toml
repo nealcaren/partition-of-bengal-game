@@ -1,0 +1,11 @@
+[project]
+name = "bengal1905"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.118.0",
+    "openai>=2.1.0",
+    "uvicorn>=0.37.0",
+]
