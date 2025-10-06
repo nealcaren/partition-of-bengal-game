@@ -13,7 +13,7 @@ from openai import OpenAI
 
 from opening_vignette import OPENING_VIGNETTE, STARTING_SCENARIO
 
-GAME_VERSION = "v1.1.2"
+GAME_VERSION = "v1.1.3"
 
 #client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 client = OpenAI(

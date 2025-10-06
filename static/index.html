@@ -46,7 +46,7 @@
 </main>
 
 <script>
-const GAME_VERSION = 'v1.1.2';
+const GAME_VERSION = 'v1.1.3';
 
 const FALLBACK_VIGNETTE_PAGES = [
   {
@@ -369,6 +369,7 @@ function showVignettePage(index) {
   const button = document.getElementById('vignetteNext');
   const isLast = currentVignetteIndex === vignettePages.length - 1;
   button.textContent = page.button || (isLast ? 'Begin Game' : 'Continue');
+  scrollToTop();
 }
 
 function resetInteractiveState() {
