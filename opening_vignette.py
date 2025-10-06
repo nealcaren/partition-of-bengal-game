@@ -1,7 +1,7 @@
 OPENING_VIGNETTE = {
     "pages": [
         {
-            "title": "July 1905 — Simla",
+            "title": "August 1905 — Simla",
             "text": """The monsoon clouds hang heavy over the Viceregal Lodge. You've served as private secretary to Lord Curzon for eighteen months now, long enough to read the particular tension in his jawline as he slides a leather portfolio across the mahogany desk.
 
 "The Partition will be announced within weeks," he says. "Bengal is unwieldy—78 million souls, impossible to govern effectively. We're creating two provinces: a Muslim-majority east with its capital at Dacca, and a Hindu-majority west centered on Calcutta."
@@ -32,7 +32,7 @@ The question everyone whispers: Is this really about administration? Or is it "d
 
 In College Square, Congress volunteers organise *swadeshi* pickets. Across the Hugli in Howrah, police intelligence notes handbills extolling bomb-makers. Newspapers quote Bankim Chandra’s hymns to a motherland that must be defended by deed, not debate.
 
-Yet the tide is not wholly Hindu. Muslim notables in Dacca, echoing Syed Ahmad Khan’s counsel, caution that a reckless agitation may leave their community exposed should the Raj give way. They whisper of forming a loyal association to steady the ship.
+Yet the tide is not wholly Hindu. At Ahsan Manzil, Nawab Salimullah assures visitors that a Muslim-majority province will finally see canal projects funded; Syed Ahmad Khan’s disciples warn that a reckless agitation may leave their community exposed should the Raj give way. Telegrams mention a “Muslim league” in gestation to steady the ship.
 
 Every decision you take will shift the balance between these camps. Appease one, and the others read betrayal.""",
             "button": "Continue"
@@ -86,7 +86,7 @@ Every turn advances time and shifts these pressures. Each memorandum you approve
 
 # For integration into the server:
 STARTING_SCENARIO = """
-**Calcutta, July 1905**
+**Calcutta, August 1905**
 
 Your first morning briefing arrives. The Partition announcement is set for October. Between now and then, you must shape the ground.
 

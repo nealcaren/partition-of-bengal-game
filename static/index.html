@@ -8,7 +8,10 @@
 </head>
 <body>
 <header>
-  <h1>Divide and Rule: The Bengal Partition Crisis of 1905</h1>
+  <div class="header-row">
+    <h1>Divide and Rule: The Bengal Partition Crisis of 1905</h1>
+    <span id="versionBadge" class="version-badge"></span>
+  </div>
 </header>
 <main>
   <div class="panel vignette-panel" id="vignettePanel">
@@ -43,9 +46,11 @@
 </main>
 
 <script>
+const GAME_VERSION = 'v1.1.1';
+
 const FALLBACK_VIGNETTE_PAGES = [
   {
-    title: "July 1905 — Simla",
+    title: "August 1905 — Simla",
     text: `The monsoon clouds hang heavy over the Viceregal Lodge. You've served as private secretary to Lord Curzon for eighteen months now, long enough to read the particular tension in his jawline as he slides a leather portfolio across the mahogany desk.
 
 "The Partition will be announced within weeks," he says. "Bengal is unwieldy—78 million souls, impossible to govern effectively. We're creating two provinces: a Muslim-majority east with its capital at Dacca, and a Hindu-majority west centered on Calcutta."
@@ -63,7 +68,7 @@ But you've read the intelligence reports. You know what the Bengali press is say
 
 **Amrita Bazar Patrika** (Bengali nationalist): "The Partition is a dagger aimed at Bengali unity—splitting Hindu from Muslim, severing our cultural heartland."
 
-**The moderate memorandum** from Surendranath Banerjee's Congress faction warns of "profound disappointment" but counsels petition and constitutional protest.
+**The Bengalee** (edited by Surendranath Banerjee): "Partition invites profound disappointment, yet our response must remain constitutional—petitions, not bombs."
 
 But there are newer voices too. Younger men—Bipin Chandra Pal, Aurobindo Ghose—speak of *swadeshi* (own-country), of boycotting British goods entirely. Of meeting foreign rule not with petitions, but with resistance.
 
@@ -116,7 +121,7 @@ Every turn advances time; every decision shifts the numbers. Choose with care.`,
   }
 ];
 
-const STARTING_SCENARIO = `Calcutta, July 1905. Your first morning briefing arrives. The Partition announcement is set for October. Between now and then, you must shape the ground.
+const STARTING_SCENARIO = `Calcutta, August 1905. Your first morning briefing arrives. The Partition announcement is set for October. Between now and then, you must shape the ground.
 
 Your desk holds:
 - Intelligence reports on organizing committees in Calcutta colleges
@@ -135,11 +140,12 @@ const STARTING_OPTIONS = [
 ];
 
 const INITIAL_STATE = {
-  date: '1905-07-15',
+  date: '1905-08-15',
   legitimacy: 60,
   local_stability: 60,
   swadeshi_momentum: 40,
-  reputation: 50
+  reputation: 50,
+  version: GAME_VERSION
 };
 
 let sessionId = null;
@@ -242,6 +248,13 @@ function setOverlayMessage(text) {
   }
 }
 
+function updateVersionBadge(version) {
+  const badge = document.getElementById('versionBadge');
+  if (badge) {
+    badge.textContent = version || GAME_VERSION;
+  }
+}
+
 function startDispatchCycle() {
   if (!waitingOverlay) return;
   dispatchScene = DISPATCH_SCENES[Math.floor(Math.random() * DISPATCH_SCENES.length)];
@@ -279,6 +292,13 @@ function escapeHtml(raw) {
 
 function escapeAttr(raw) {
   return escapeHtml(raw).replace(/`/g, '&#96;');
+}
+
+function convertTimelineBlocks(text) {
+  return text.replace(/\[Timeline • ([^\]]+)\]\s*([\s\S]*?)(?=(?:\n\n|$))/g, (_match, label, body) => {
+    const safeBody = body.trim();
+    return `<div class="timeline-event"><div class="timeline-event__label">Timeline • ${label}</div><div class="timeline-event__body">${safeBody}</div></div>`;
+  });
 }
 
 function applyGlossaryMarkup(html) {
@@ -412,8 +432,10 @@ async function createSession() {
 
 function showStartingScenario() {
   const narrationEl = document.getElementById('narration');
-  narrationEl.innerHTML = applyGlossaryMarkup(escapeHtml(STARTING_SCENARIO));
+  const safe = escapeHtml(STARTING_SCENARIO);
+  narrationEl.innerHTML = applyGlossaryMarkup(convertTimelineBlocks(safe));
   populateOptions(STARTING_OPTIONS);
+  updateVersionBadge(INITIAL_STATE.version || GAME_VERSION);
 }
 
 function renderStats(state) {
@@ -502,9 +524,11 @@ function isIncreaseBeneficial(key, increased) {
 function renderTurn(data) {
   if (!data) return;
   const narrationEl = document.getElementById('narration');
-  narrationEl.innerHTML = applyGlossaryMarkup(escapeHtml(data.narration || ''));
+  const safe = escapeHtml(data.narration || '');
+  narrationEl.innerHTML = applyGlossaryMarkup(convertTimelineBlocks(safe));
   if (data.state) {
     renderStats(data.state);
+    updateVersionBadge(data.state.version || GAME_VERSION);
   }
   populateOptions(data.options || []);
   document.getElementById('userInput').value = '';
@@ -685,6 +709,7 @@ document.getElementById('userInput').addEventListener('input', (event) => {
 document.getElementById('restartBtn').addEventListener('click', restartGame);
 
 (async function init() {
+  updateVersionBadge(GAME_VERSION);
   await loadVignette();
   if (!vignettePages.length) {
     vignettePages = getFallbackVignette();
