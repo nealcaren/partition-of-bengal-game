@@ -119,6 +119,53 @@ main {
   color: var(--text-primary);
 }
 
+.glossary-term {
+  position: relative;
+  cursor: help;
+  border-bottom: 1px dotted currentColor;
+}
+
+.glossary-term::after {
+  content: attr(data-description);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  transform: translateX(-50%);
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 10px 14px;
+  border-radius: 10px;
+  width: min(280px, 70vw);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+  z-index: 5;
+  white-space: normal;
+}
+
+.glossary-term::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-top-color: #0f172a;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  z-index: 5;
+}
+
+.glossary-term:hover::after,
+.glossary-term:focus-visible::after,
+.glossary-term:hover::before,
+.glossary-term:focus-visible::before {
+  opacity: 1;
+}
+
 .stats {
   display: grid;
   gap: 12px;

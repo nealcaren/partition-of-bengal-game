@@ -150,6 +150,89 @@ let gameReady = false;
 let gameOver = false;
 const waitingOverlay = document.getElementById('waitingOverlay');
 let previousState = null;
+const DISPATCH_SCENES = [
+  [
+    'The telegraph clerks labour furiously; a reply from Calcutta is en route…',
+    'Cipher officers double-check the codebook, unwilling to risk a misread dispatch…',
+    'From the counting house, a runner signals the lines are still clear…',
+    'Ink dries on the Viceroy’s marginalia; the return message is nearly upon us…'
+  ],
+  [
+    'Messenger pigeons beat the air above Writers’ Building, searching for a familiar perch…',
+    'The Morse key clatters, pauses, then clatters again—someone is editing the reply midstream…',
+    'A clerk rewinds the wax cylinder recorder, anxious not to miss a single pulse…',
+    'Bootheels echo in the corridor; an orderly hurries forward with the sealed note…'
+  ],
+  [
+    'On Eden Gardens, officers halt their cricket as the signal flag rises over the telegraph mast…',
+    'A draughtsman traces troop dispositions while waiting for confirmation from Fort William…',
+    'The Resident’s office dimly glows; hurricane lamps are trimmed to welcome the reply…',
+    'Stamping wax is warmed—only the Governor-General’s counter-signature remains…'
+  ]
+];
+let dispatchTimer = null;
+let dispatchIndex = 0;
+let dispatchScene = DISPATCH_SCENES[0];
+
+const GLOSSARY_ENTRIES = [
+  {
+    term: 'Lord Curzon',
+    description: 'George Nathaniel Curzon, Viceroy of India (1899–1905), who championed the partition for administrative reasons.'
+  },
+  {
+    term: 'Section 144',
+    description: 'A colonial-era regulation allowing local officials to prohibit assemblies and impose curfews when public order is threatened.'
+  },
+  {
+    term: 'Vernacular Press Act',
+    description: 'An 1878 law enabling censorship or shutdown of Indian-language newspapers deemed seditious by the Raj.'
+  },
+  {
+    term: 'CID',
+    description: 'The Criminal Investigation Department, British India’s intelligence branch charged with monitoring nationalist activity.'
+  },
+  {
+    term: 'Surendranath Banerjee',
+    description: 'Moderate Indian National Congress leader who favoured petitions and constitutional protest against the partition.'
+  },
+  {
+    term: 'Bipin Chandra Pal',
+    description: 'A leading Swadeshi organiser urging boycott of British goods and advocating more assertive resistance.'
+  },
+  {
+    term: 'Aurobindo Ghose',
+    description: 'Nationalist intellectual who left the civil service to champion passive resistance and cultural revival.'
+  },
+  {
+    term: 'Rabindranath Tagore',
+    description: 'Bengali poet and Nobel laureate who mobilised cultural opposition to partition, including unity ceremonies like Raksha Bandhan.'
+  },
+  {
+    term: 'swadeshi',
+    description: 'From Sanskrit for “of one’s own country”; the boycott movement promoting indigenous industry over imported British goods.'
+  },
+  {
+    term: 'Muslim League',
+    description: 'Political organisation founded in 1906 to represent Muslim interests while engaging with imperial authorities.'
+  },
+  {
+    term: 'Indian National Congress',
+    description: 'Pan-Indian political forum split in 1905 between moderates seeking petitions and extremists pushing direct action.'
+  },
+  {
+    term: 'Dacca',
+    description: 'Planned capital of the new Eastern Bengal and Assam province; today’s Dhaka in Bangladesh.'
+  },
+  {
+    term: 'Calcutta',
+    description: 'Seat of the Bengal government and hotbed of anti-partition agitation until the imperial capital shifted to Delhi in 1911.'
+  }
+].sort((a, b) => b.term.length - a.term.length);
+
+const GLOSSARY_PATTERN = new RegExp(
+  `\\b(${GLOSSARY_ENTRIES.map(({ term }) => term.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&').replace(/\s+/g, '::SPACE::')).join('|')})\\b`,
+  'gi'
+);
 
 function setOverlayMessage(text) {
   const paragraph = waitingOverlay ? waitingOverlay.querySelector('p') : null;
@@ -158,23 +241,73 @@ function setOverlayMessage(text) {
   }
 }
 
+function startDispatchCycle() {
+  if (!waitingOverlay) return;
+  dispatchScene = DISPATCH_SCENES[Math.floor(Math.random() * DISPATCH_SCENES.length)];
+  dispatchIndex = 0;
+  setOverlayMessage(dispatchScene[dispatchIndex]);
+  stopDispatchCycle();
+  dispatchTimer = setInterval(() => {
+    dispatchIndex += 1;
+    if (dispatchIndex >= dispatchScene.length) {
+      dispatchIndex = dispatchScene.length - 1;
+    }
+    setOverlayMessage(dispatchScene[dispatchIndex]);
+  }, 7000);
+}
+
+function stopDispatchCycle() {
+  if (dispatchTimer) {
+    clearInterval(dispatchTimer);
+    dispatchTimer = null;
+  }
+}
+
+function escapeHtml(raw) {
+  return (raw || '').replace(/[&<>"']/g, (ch) => {
+    switch (ch) {
+      case '&': return '&amp;';
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '"': return '&quot;';
+      case "'": return '&#39;';
+      default: return ch;
+    }
+  });
+}
+
+function escapeAttr(raw) {
+  return escapeHtml(raw).replace(/`/g, '&#96;');
+}
+
+function applyGlossaryMarkup(html) {
+  return html.replace(GLOSSARY_PATTERN, (match) => {
+    const normalized = match.toLowerCase().replace(/\s+/g, ' ');
+    const entry = GLOSSARY_ENTRIES.find(({ term }) => term.toLowerCase() === normalized);
+    if (!entry) return match;
+    return `<span class="glossary-term" tabindex="0" data-description="${escapeAttr(entry.description)}">${match}</span>`;
+  });
+}
+
 function getFallbackVignette() {
   return FALLBACK_VIGNETTE_PAGES.map(page => ({ ...page }));
 }
 
 function applyInlineMarkup(block) {
-  return block
+  const escaped = escapeHtml(block)
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\n/g, '<br/>');
+  return escaped;
 }
 
 function formatVignetteText(text) {
   const trimmed = (text || '').trim();
   if (!trimmed) return '';
-  return trimmed
+  const markup = trimmed
     .split(/\n{2,}/)
     .map(paragraph => `<p>${applyInlineMarkup(paragraph)}</p>`)
     .join('');
+  return applyGlossaryMarkup(markup);
 }
 
 async function loadVignette() {
@@ -277,7 +410,8 @@ async function createSession() {
 }
 
 function showStartingScenario() {
-  document.getElementById('narration').textContent = STARTING_SCENARIO;
+  const narrationEl = document.getElementById('narration');
+  narrationEl.innerHTML = applyGlossaryMarkup(escapeHtml(STARTING_SCENARIO));
   populateOptions(STARTING_OPTIONS);
 }
 
@@ -366,7 +500,8 @@ function isIncreaseBeneficial(key, increased) {
 
 function renderTurn(data) {
   if (!data) return;
-  document.getElementById('narration').textContent = data.narration || '';
+  const narrationEl = document.getElementById('narration');
+  narrationEl.innerHTML = applyGlossaryMarkup(escapeHtml(data.narration || ''));
   if (data.state) {
     renderStats(data.state);
   }
@@ -408,7 +543,11 @@ function setWaiting(isWaiting, message = '') {
   if (isWaiting) {
     statusEl.classList.remove('status-victory', 'status-defeat');
     statusEl.textContent = '';
-    setOverlayMessage(message || 'The telegraph clerks labour furiously; a reply from Calcutta is en route…');
+    if (message) {
+      setOverlayMessage(message);
+    } else {
+      startDispatchCycle();
+    }
     if (waitingOverlay) {
       waitingOverlay.classList.remove('hidden');
     }
@@ -424,6 +563,7 @@ function setWaiting(isWaiting, message = '') {
     if (waitingOverlay) {
       waitingOverlay.classList.add('hidden');
     }
+    stopDispatchCycle();
     if (!gameOver || message) {
       statusEl.textContent = message;
     }

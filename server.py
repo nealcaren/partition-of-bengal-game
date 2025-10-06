@@ -13,7 +13,11 @@ from openai import OpenAI
 
 from opening_vignette import OPENING_VIGNETTE, STARTING_SCENARIO
 
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+#client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+client = OpenAI(
+    api_key=os.environ.get("GEMINI_API_KEY"),
+    base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+)
 
 app = FastAPI()
 
@@ -157,7 +161,7 @@ def turn(req: TurnRequest):
     # Call LLM
     try:
         resp = client.chat.completions.create(
-            model="gpt-5-mini",  # or your preferred chat model
+            model="gemini-2.5-flash",  # or your preferred chat model
             temperature=1,
             messages=game_messages(state, user_input),
             response_format={"type": "json_object"},
