@@ -46,7 +46,7 @@
 </main>
 
 <script>
-const GAME_VERSION = 'v1.1.4';
+const GAME_VERSION = 'v1.1.6';
 
 const FALLBACK_VIGNETTE_PAGES = [
   {
@@ -110,9 +110,9 @@ History remembers that the Partition was annulled in 1911. Your decisions will s
     text: `Your post lasts only if the Raj believes you can keep Bengal orderly.
 
 You will be **removed from your post** if any of the following happen:
-- Legitimacy falls below 20 — your administration loses the confidence of Calcutta and London alike.
-- Local Stability falls below 20 — unrest overwhelms your ability to govern.
-- Swadeshi Momentum rises above 85 — the boycott becomes unstoppable and the partition collapses.
+- Legitimacy collapses (value < 20) — your administration loses the confidence of Calcutta and London alike.
+- Local Stability collapses (value < 20) — unrest overwhelms your ability to govern.
+- Swadeshi Momentum becomes unstoppable (value > 85) — the boycott makes the Partition unworkable.
 
 You will **survive to the end of 1908** if none of those crises occur before the calendar reaches 31 December 1908.
 
@@ -123,20 +123,14 @@ Every turn advances time; every decision shifts the numbers. Choose with care.`,
 
 const STARTING_SCENARIO = `Calcutta, August 1905. Your first morning briefing arrives. The Partition announcement is set for October. Between now and then, you must shape the ground.
 
-Your desk holds:
-- Intelligence reports on organizing committees in Calcutta colleges
-- Memoranda from moderate leaders requesting audience with the Viceroy
-- Police recommendations for preemptive restrictions on public meetings
-- A proposal from the Commerce Department for grants to indigenous industries
 
 The city watches. Merchants whisper of boycott. What is your first move?`;
 
 const STARTING_OPTIONS = [
-  "Announce the partition's administrative merits and launch a public communication tour.",
-  "Quietly consult moderate leaders such as Surendranath Banerjee and postpone enforcement deadlines.",
-  "Preemptively restrict seditious gatherings near Calcutta University and key cloth bazaars.",
-  "Propose a swadeshi-friendly industrial grant to defuse boycott momentum while proceeding.",
-  "Dispatch CID officers to survey Howrah and Dacca for intelligence on radical cells before issuing orders."
+  "Authorize Commissioner Bamfield to execute the arrest warrants before the swadeshi meetings swell.",
+  "Grant Surendranath Banerjee an immediate audience to channel dissent through petitions.",
+  "Approve the ₹50,000 textile grant to blunt the boycott and placate loyal industry leaders.",
+  "Dispatch a trusted aide to College Square and Dacca to verify police intelligence."
 ];
 
 const INITIAL_STATE = {
@@ -158,24 +152,79 @@ let gameOver = false;
 const waitingOverlay = document.getElementById('waitingOverlay');
 let previousState = null;
 const DISPATCH_SCENES = [
-  [
-    'The telegraph clerks labour furiously; a reply from Calcutta is en route…',
-    'Cipher officers double-check the codebook, unwilling to risk a misread dispatch…',
-    'From the counting house, a runner signals the lines are still clear…',
-    'Ink dries on the Viceroy’s marginalia; the return message is nearly upon us…'
+[
+    "The telegraph clerks labour furiously; a reply from Calcutta is en route…",
+    "Cipher officers double-check the codebook, unwilling to risk a misread dispatch…",
+    "From the counting house, a runner signals the lines are still clear…",
+    "Ink dries on the Viceroy's marginalia; the return message is nearly upon us…"
   ],
   [
-    'Messenger pigeons beat the air above Writers’ Building, searching for a familiar perch…',
-    'The Morse key clatters, pauses, then clatters again—someone is editing the reply midstream…',
-    'A clerk rewinds the wax cylinder recorder, anxious not to miss a single pulse…',
-    'Bootheels echo in the corridor; an orderly hurries forward with the sealed note…'
+    "Messenger pigeons beat the air above Writers' Building, searching for a familiar perch…",
+    "The Morse key clatters, pauses, then clatters again—someone is editing the reply midstream…",
+    "A clerk rewinds the wax cylinder recorder, anxious not to miss a single pulse…",
+    "Bootheels echo in the corridor; an orderly hurries forward with the sealed note…"
   ],
   [
-    'On Eden Gardens, officers halt their cricket as the signal flag rises over the telegraph mast…',
-    'A draughtsman traces troop dispositions while waiting for confirmation from Fort William…',
-    'The Resident’s office dimly glows; hurricane lamps are trimmed to welcome the reply…',
-    'Stamping wax is warmed—only the Governor-General’s counter-signature remains…'
+    "On Eden Gardens, officers halt their cricket as the signal flag rises over the telegraph mast…",
+    "A draughtsman traces troop dispositions while waiting for confirmation from Fort William…",
+    "The Resident's office dimly glows; hurricane lamps are trimmed to welcome the reply…",
+    "Stamping wax is warmed—only the Governor-General's counter-signature remains…"
+  ],
+  [
+    "A punkah-wallah fans the cipher room while three officers debate a contested word…",
+    "The District Magistrate's runner arrives breathless; his dispatch pouch is unopened still…",
+    "Monsoon rain drums the roof of the telegraph office—the line holds, barely…",
+    "A junior secretary blots the fair copy, checking twice for transcription errors…"
+  ],
+  [
+    "Hoofbeats on Chowringhee Road—the mounted courier has made good time from Government House…",
+    "In the Registry, a clerk thumbs through precedent files while the response is drafted…",
+    "The Commissioner's aide-de-camp waits at the door, telegram form in hand…",
+    "Sealing wax hisses as it meets the brass stamp; authentication complete…"
+  ],
+  [
+    "A lamp flickers in the Police Commissioner's window—his night shift continues…",
+    "The railway telegraph reports all lines north are functioning; the message will arrive…",
+    "Steam whistles from the harbor carry across Dalhousie Square—a ship brings dispatches from Bombay…",
+    "Your deputy reviews the filing system, ensuring no prior directive contradicts what comes next…"
+  ],
+  [
+    "College Square lies quiet in the pre-dawn hours; intelligence officers take notes from the shadows…",
+    "A bearer refills the inkwell at your desk—correspondence must be answered promptly…",
+    "The leather portfolio is retrieved from the safe; only certain eyes may read what it contains…",
+    "Footsteps ascend the marble staircase; someone carries news from the Secretariat…"
+  ],
+  [
+    "At Howrah Station, the overnight mail train exhales steam—diplomatic bags are unloaded first…",
+    "A cartographer updates the wall map with fresh intelligence; borders shift in red ink…",
+    "The duty officer signs the logbook, noting the hour of receipt and the seal's condition…",
+    "Through the jalousie shutters, you glimpse a runner crossing the courtyard at speed…"
+  ],
+  [
+    "The Viceroy's private secretary compares three draft responses, selecting the least provocative…",
+    "In the cantonment, a major pauses his morning drill to read an urgent communiqué…",
+    "Clerks in the Finance Department tally the cost of your last decision; figures are being compiled…",
+    "A confidential memorandum arrives from London—weeks old, but still relevant to what comes next…"
+  ],
+  [
+    "The Intelligence Bureau's daily summary is typed, retyped, then marked for your eyes only…",
+    "A district officer's handwritten report arrives mud-stained; he rode through the night to send it…",
+    "The cipher clerk triple-checks the one-time pad; this message cannot be misread…",
+    "At the Press Trust, compositors set tomorrow's headlines—they know before the public does…"
+  ],
+  [
+    "A telegram arrives from Simla, flagged 'IMMEDIATE'—the Viceroy has taken note…",
+    "The stationmaster at Sealdah signals all clear; no sabotage on the northern line today…",
+    "Your morning tea grows cold as you await confirmation from three separate departments…",
+    "In the archives, a researcher pulls the 1857 files—precedent for emergency powers, should you need them…"
+  ],
+  [
+    "A despatch rider dismounts in the courtyard, his satchel bearing the Governor's seal…",
+    "The Bengali press has gotten wind of something; your press liaison prepares a statement…",
+    "From Dacca, a coded message: Nawab Salimullah's response to your last communication…",
+    "The clock in the Council Chamber strikes the hour; decisions made now will ripple outward…"
   ]
+
 ];
 let dispatchTimer = null;
 let dispatchIndex = 0;
@@ -276,7 +325,7 @@ function startDispatchCycle() {
       dispatchIndex = dispatchScene.length - 1;
     }
     setOverlayMessage(dispatchScene[dispatchIndex]);
-  }, 7000);
+  }, 4000);
 }
 
 function stopDispatchCycle() {
@@ -303,6 +352,13 @@ function escapeAttr(raw) {
   return escapeHtml(raw).replace(/`/g, '&#96;');
 }
 
+function wrapBlockquotes(html) {
+  return html.replace(/<p>&gt;\s?([\s\S]*?)<\/p>/g, (_match, body) => {
+    const cleaned = body.replace(/<br\/>/g, '<br/>');
+    return `<blockquote>${cleaned}</blockquote>`;
+  });
+}
+
 function convertTimelineBlocks(text) {
   return text.replace(/\[Timeline • ([^\]]+)\]\s*([\s\S]*?)(?=(?:\n\n|$))/g, (_match, label, body) => {
     const safeBody = body.trim();
@@ -324,9 +380,14 @@ function getFallbackVignette() {
 }
 
 function applyInlineMarkup(block) {
-  const escaped = escapeHtml(block)
+  let escaped = escapeHtml(block)
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__(.*?)__/g, '<strong>$1</strong>')
+    .replace(/\*(?!\*)([^*\n]+)\*/g, '<em>$1</em>')
+    .replace(/_(?!_)([^_\n]+)_/g, '<em>$1</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\n/g, '<br/>');
+  escaped = wrapBlockquotes(escaped);
   return escaped;
 }
 
@@ -463,12 +524,15 @@ function renderStats(state) {
 
   const cards = metrics.map(({ label, key, value }) => {
     const statClass = getStatClass(key, value);
-    const displayValue = value ?? '—';
+    const numeric = Number.isFinite(Number(value)) ? Number(value) : null;
+    const descriptor = getStatDescriptor(key, value);
+    const tooltip = numeric !== null ? `title="Exact value: ${numeric}"` : '';
     const trendMarkup = getTrendMarkup(key, value);
     return `
       <div class="stat ${statClass}">
         <span class="stat-label">${label}</span>
-        <span class="stat-value">${displayValue}${trendMarkup}</span>
+        <span class="stat-value" ${tooltip}>${descriptor}${trendMarkup}</span>
+        <span class="stat-numeric">${numeric !== null ? numeric : '—'}</span>
       </div>
     `;
   }).join('');
@@ -530,6 +594,25 @@ function isIncreaseBeneficial(key, increased) {
     return !increased;
   }
   return increased;
+}
+
+function getStatDescriptor(key, rawValue) {
+  const value = Number(rawValue);
+  if (Number.isNaN(value)) {
+    return 'Unknown';
+  }
+  if (key === 'swadeshi_momentum') {
+    if (value <= 30) return 'Dormant';
+    if (value <= 50) return 'Flickering';
+    if (value <= 70) return 'Surging';
+    if (value <= 85) return 'Blazing';
+    return 'Unstoppable';
+  }
+  if (value >= 80) return 'Commanding';
+  if (value >= 60) return 'Steady';
+  if (value >= 40) return 'Wavering';
+  if (value >= 25) return 'Precarious';
+  return 'Collapsed';
 }
 
 function renderTurn(data) {

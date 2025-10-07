@@ -223,9 +223,8 @@ main {
   border-radius: 12px;
   padding: 12px 14px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 6px;
   border-left: 4px solid transparent;
 }
 
@@ -238,8 +237,19 @@ main {
 
 .stat-value {
   color: var(--text-primary);
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-numeric {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
 }
 
 .stat-date {

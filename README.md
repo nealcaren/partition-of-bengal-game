@@ -18,9 +18,9 @@ A browser-based, LLM-driven strategy narrative set during the run-up to the 1905
 
 You are dismissed immediately if any one of these thresholds is crossed:
 
-- **Legitimacy < 20** – Calcutta and London no longer trust your assurances.
-- **Local Stability < 20** – Riots, strikes, and violence overwhelm the administration.
-- **Swadeshi Momentum > 85** – The boycott movement becomes unstoppable.
+- **Legitimacy collapses** (score under 20) – Calcutta and London no longer trust your assurances.
+- **Local Stability collapses** (score under 20) – Riots, strikes, and violence overwhelm the administration.
+- **Swadeshi Momentum becomes unstoppable** (score above 85) – The boycott movement can no longer be contained.
 
 Survive unchanged through **31 December 1908** (the canonical end-date for the scenario) and you win by outlasting the crisis. Reputation influences optics and narrative tone but will not end the game on its own.
 
