@@ -46,7 +46,7 @@
 </main>
 
 <script>
-const GAME_VERSION = 'v1.1.6';
+const GAME_VERSION = 'v1.2.0';
 
 const FALLBACK_VIGNETTE_PAGES = [
   {
@@ -121,10 +121,20 @@ Every turn advances time; every decision shifts the numbers. Choose with care.`,
   }
 ];
 
-const STARTING_SCENARIO = `Calcutta, August 1905. Your first morning briefing arrives. The Partition announcement is set for October. Between now and then, you must shape the ground.
+const STARTING_SCENARIO = `The breakfast files still sit before you:
 
+**1. Police Commissioner Bamfield's arrest warrants**
+Twelve names. Firebrands, agitators, men who speak of bombs and boycotts. Strike now, before they organize—but risk making martyrs.
 
-The city watches. Merchants whisper of boycott. What is your first move?`;
+**2. Surendranath Banerjee's request for audience** 
+The moderate voice. Constitutional methods. Petitions and deputations. He wants to channel dissent through proper channels—if you'll listen.
+
+**3. Commerce Department proposal**
+₹50,000 in grants to Bengali textile mills. Undercut the *swadeshi* appeal by funding indigenous industry. But will it look like a bribe?
+
+The monsoon clouds are breaking. By afternoon, all Calcutta will know the Partition is confirmed.
+
+What do you do first?`;
 
 const STARTING_OPTIONS = [
   "Authorize Commissioner Bamfield to execute the arrest warrants before the swadeshi meetings swell.",
@@ -398,7 +408,7 @@ function formatVignetteText(text) {
     .split(/\n{2,}/)
     .map(paragraph => `<p>${applyInlineMarkup(paragraph)}</p>`)
     .join('');
-  return applyGlossaryMarkup(markup);
+  return applyGlossaryMarkup(convertTimelineBlocks(markup));
 }
 
 async function loadVignette() {
@@ -503,8 +513,7 @@ async function createSession() {
 
 function showStartingScenario() {
   const narrationEl = document.getElementById('narration');
-  const safe = escapeHtml(STARTING_SCENARIO);
-  narrationEl.innerHTML = applyGlossaryMarkup(convertTimelineBlocks(safe));
+  narrationEl.innerHTML = formatVignetteText(STARTING_SCENARIO);
   populateOptions(STARTING_OPTIONS);
   updateVersionBadge(INITIAL_STATE.version || GAME_VERSION);
   scrollToTop();
@@ -618,8 +627,7 @@ function getStatDescriptor(key, rawValue) {
 function renderTurn(data) {
   if (!data) return;
   const narrationEl = document.getElementById('narration');
-  const safe = escapeHtml(data.narration || '');
-  narrationEl.innerHTML = applyGlossaryMarkup(convertTimelineBlocks(safe));
+  narrationEl.innerHTML = formatVignetteText(data.narration || '');
   if (data.state) {
     renderStats(data.state);
     updateVersionBadge(data.state.version || GAME_VERSION);

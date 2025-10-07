@@ -98,33 +98,15 @@ The stakes aren't just abstract. Your name will be attached to whatever happens 
 **SWADESHI MOMENTUM** — The boycott movement grows weekly. Bonfires of British cloth. *Swadeshi* mills opening. If it becomes unstoppable, the Partition itself becomes untenable.
 
 You will be **dismissed** if:
-- **Legitimacy collapses** (score under 20) — administrators and elites conclude you've lost control
-- **Stability collapses** (score under 20) — riots overwhelm provincial authority  
-- **Swadeshi Momentum becomes unstoppable** (score above 85) — the boycott makes the Partition unworkable
+- **Legitimacy collapses:**  administrators and elites conclude you've lost control
+- **Stability collapses:** riots overwhelm provincial authority  
+- **Swadeshi Momentum becomes unstoppable:**  the boycott makes the Partition unworkable
 
 You will **succeed** if you reach **31 December 1908** without triggering any of those crises.
 
-History remembers that the Partition was annulled in 1911. Your job is to show why.""",
-            "button": "Continue"
-        },
-        {
-            "title": "Your First Decision",
-            "text": """The breakfast files still sit before you:
-
-**1. Police Commissioner Bamfield's arrest warrants**  
-Twelve names. Firebrands, agitators, men who speak of bombs and boycotts. Strike now, before they organize—but risk making martyrs.
-
-**2. Surendranath Banerjee's request for audience**  
-The moderate voice. Constitutional methods. Petitions and deputations. He wants to channel dissent through proper channels—if you'll listen.
-
-**3. Commerce Department proposal**  
-₹50,000 in grants to Bengali textile mills. Undercut the *swadeshi* appeal by funding indigenous industry. But will it look like a bribe?
-
-The monsoon clouds are breaking. By afternoon, all Calcutta will know the Partition is confirmed.
-
-What do you do first?""",
+History remembers that the Partition was annulled in 1911. Will this time be different?""",
             "button": "Begin Game"
-        }
+        },
     ]
 }
 
