@@ -13,7 +13,7 @@ from openai import OpenAI
 
 from opening_vignette import OPENING_VIGNETTE, STARTING_SCENARIO
 
-GAME_VERSION = "v1.1.3"
+GAME_VERSION = "v1.1.4"
 
 #client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 client = OpenAI(
@@ -95,7 +95,7 @@ class TurnRequest(BaseModel):
     session_id: Optional[str] = None
     user_input: Optional[str] = ""
 
-STATE_KEYS = ("date", "legitimacy", "local_stability", "swadeshi_momentum", "reputation", "version")
+STATE_KEYS = ("date", "legitimacy", "local_stability", "swadeshi_momentum", "reputation", "version", "last_action")
 END_DATE = "1908-12-31"
 STATUS_MESSAGES = {
     "legitimacy_collapse": "Legitimacy has collapsed beneath acceptable levels; Bengal no longer trusts the Raj's word.",
@@ -113,7 +113,8 @@ def new_session_state() -> Dict[str, Any]:
         "reputation": 50,
         "log": [],
         "events_triggered": [],
-        "version": GAME_VERSION
+        "version": GAME_VERSION,
+        "last_action": ""
     }
 
 def game_messages(state: Dict[str, Any], user_input: str) -> List[Dict[str, str]]:
@@ -122,7 +123,11 @@ def game_messages(state: Dict[str, Any], user_input: str) -> List[Dict[str, str]
     state_summary = json.dumps(compact_state)[:2000]
     history_clip = "\n".join(state.get("log", [])[-6:])  # last few turns
     due_events = get_due_events(state)
-    timeline_instructions = "\n".join(f"- {event['instruction']}" for event in due_events)
+    action_context = (user_input.strip() or state.get("last_action") or "standing directives from the Secretariat")
+    timeline_instructions = "\n".join(
+        f"- Regardless of the directive \"{action_context}\", {event['instruction']} Explain how this development complicates that choice and present updated options." 
+        for event in due_events
+    )
     developer_prompt = f"""
 You are continuing an educational game. Current compact state:
 {state_summary}
@@ -263,6 +268,8 @@ def turn(req: TurnRequest):
             SESSIONS[sid]["log"][-1] = combined
         else:
             SESSIONS[sid]["log"].append(combined)
+
+    SESSIONS[sid]["last_action"] = user_input.strip()
 
     status_info = check_game_status(SESSIONS[sid])
     SESSIONS[sid]["game_status"] = status_info
