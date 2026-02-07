@@ -32,31 +32,21 @@ Survive unchanged through **31 December 1908** (the canonical end-date for the s
 |------------|------------------------------------------------------------|
 | Engine     | Scripted scenario graph (fixed branches + stat effects)    |
 | Frontend   | Static HTML, modern CSS, vanilla ES modules-free JavaScript|
-| Hosting    | Static (GitHub/Google Pages) or optional FastAPI server    |
+| Hosting    | Static (GitHub/Google Pages)                               |
 
 ---
 
 ## Getting Started
 
-### Static Hosting (Recommended)
+### Static Hosting
 
 - Host the contents of `static/` on GitHub Pages, Google Pages, or any static host.
 - Point your host to `static/index.html` as the entry point.
 
-### Local Server (Optional)
+### Local Development
 
-1. **Install dependencies**
-   ```bash
-   pip install fastapi uvicorn pydantic
-   ```
-
-2. **Run the server**
-   ```bash
-   uvicorn server:app --reload
-   ```
-
-3. **Open the client**
-   Visit `http://127.0.0.1:8000/` in your browser. The static frontend is served directly by FastAPI, so no extra build step is needed.
+1. **Open the client**
+   Open `static/index.html` in your browser.
 
 ---
 

@@ -35,7 +35,7 @@
   };
 
   const BENGAL_STORY = {
-    GAME_VERSION: "v2.2.0",
+    GAME_VERSION: "v2.3.0",
     START_SCENE_ID: "opening_decision",
     OUTCOME_TEXT: {
       legitimacy_collapse:
@@ -710,7 +710,7 @@
               "Invoke press restrictions and shut down the most incendiary papers.",
             effects: { local_stability: 3, legitimacy: -6, swadeshi_momentum: 4, reputation: 2 },
             set_flags: ["hardline", "press_censorship"],
-            next: "rural_unrest",
+            next: "fuller_crisis",
           },
           {
             id: "education_concessions",
@@ -718,7 +718,7 @@
               "Launch scholarships and educational grants for both communities.",
             effects: { legitimacy: 4, local_stability: 1, swadeshi_momentum: -2, reputation: 0 },
             set_flags: ["education_focus"],
-            next: "rural_unrest",
+            next: "fuller_crisis",
           },
           {
             id: "municipal_devolution",
@@ -726,7 +726,7 @@
               "Give municipal councils more authority over relief and policing priorities.",
             effects: { legitimacy: 3, local_stability: 1, swadeshi_momentum: -1, reputation: -1 },
             set_flags: ["moderate_outreach"],
-            next: "rural_unrest",
+            next: "fuller_crisis",
           },
           {
             id: "split_gains",
@@ -734,7 +734,7 @@
               "Direct extra funds to eastern districts and highlight loyalist cooperation.",
             effects: { legitimacy: 1, local_stability: 1, swadeshi_momentum: 1, reputation: 2 },
             set_flags: ["muslim_loyalists"],
-            next: "rural_unrest",
+            next: "fuller_crisis",
           },
           {
             id: "labor_mediation",
@@ -742,55 +742,38 @@
               "Mediate between mill owners and workers to prevent a general strike.",
             effects: { legitimacy: 2, local_stability: 2, swadeshi_momentum: -1, reputation: 0 },
             set_flags: ["labor_conciliation"],
-            next: "rural_unrest",
+            next: "fuller_crisis",
           },
         ],
       },
-      rural_unrest: {
-        date: "1906-09-20",
+      fuller_crisis: {
+        date: "1906-08-20",
         narration:
-          "By late monsoon, boycotts and petitions have reached the districts. Reports note school closures in towns along the railway and small clashes between pickets and shopkeepers. Some Muslim leaders in the east urge calm, fearing communal spillover; Hindu radicals insist the movement must intensify.\n\nYou must decide whether to emphasize communal balance, economic relief, or stricter policing.",
+          "**The Fuller Crisis**\n\nSir Bampfylde Fuller, Lieutenant-Governor of Eastern Bengal, has precipitated a crisis. He demanded the disaffiliation of two schools in Sirajganj where students were involved in agitation. Lord Minto, fearing a parliamentary uproar, asked him to withdraw the request.\n\nFuller has responded with an ultimatum: either the schools are punished, or he resigns. The Muslim elite in the east see Fuller as their champion. The Congress sees him as a tyrant. Your advice to the Viceroy will determine the fate of the administration.",
         learned:
-          "Nationalist agitation expanded beyond urban elites, while communal politics sharpened as different groups calculated the costs and benefits of the Partition.",
+          "Administrative ultimatums often forced the colonial state to choose between prestige and political expediency.",
         options: [
           {
-            id: "communal_balance",
+            id: "accept_resignation",
             label:
-              "Issue a statement emphasizing protection of both communities and equal access to grants.",
-            effects: { legitimacy: 3, local_stability: 1, swadeshi_momentum: -1, reputation: 0 },
-            set_flags: ["communal_balance"],
+              "Accept Fuller's resignation. Sacrifice the man to save the peace.",
+            effects: { legitimacy: 4, local_stability: 1, swadeshi_momentum: -2, reputation: -1 },
+            set_flags: ["moderate_outreach"],
             next: "muslim_league",
           },
           {
-            id: "district_police",
+            id: "back_fuller",
             label:
-              "Reinforce district police and authorize rapid arrests of agitators.",
-            effects: { local_stability: 4, legitimacy: -4, swadeshi_momentum: 3, reputation: 2 },
-            set_flags: ["hardline"],
+              "Reject the resignation and back Fuller's hardline stance.",
+            effects: { local_stability: -2, legitimacy: -4, swadeshi_momentum: 4, reputation: 2 },
+            set_flags: ["hardline", "muslim_loyalists"],
             next: "muslim_league",
           },
           {
-            id: "rural_relief_funds",
+            id: "broker_compromise",
             label:
-              "Expand rural relief funds and public works to absorb unrest.",
-            effects: { legitimacy: 3, local_stability: 2, swadeshi_momentum: -2, reputation: 0 },
-            set_flags: ["rural_focus"],
-            next: "muslim_league",
-          },
-          {
-            id: "press_dialogue",
-            label:
-              "Invite editors from rival newspapers to a public dialogue on governance.",
-            effects: { legitimacy: 2, local_stability: 0, swadeshi_momentum: -1, reputation: -1 },
-            set_flags: ["press_campaign"],
-            next: "muslim_league",
-          },
-          {
-            id: "student_monitoring",
-            label:
-              "Monitor student hostels and ban political speeches on campuses.",
-            effects: { local_stability: 2, legitimacy: -3, swadeshi_momentum: 2, reputation: 1 },
-            set_flags: ["hardline"],
+              "Delay the decision and attempt to transfer Fuller quietly later.",
+            effects: { legitimacy: -1, local_stability: 0, swadeshi_momentum: 1, reputation: -1 },
             next: "muslim_league",
           },
         ],
@@ -817,7 +800,7 @@
               "Attend the League gathering and praise loyal cooperation in the east.",
             effects: { local_stability: 2, legitimacy: -2, swadeshi_momentum: 2, reputation: 3 },
             set_flags: ["muslim_loyalists"],
-            next: "radicalization",
+            next: "jamalpur_riots",
           },
           {
             id: "balance_statement",
@@ -825,14 +808,14 @@
               "Issue a balanced statement and meet Congress moderates the same week.",
             effects: { legitimacy: 3, local_stability: 1, swadeshi_momentum: -1, reputation: 0 },
             set_flags: ["moderate_outreach"],
-            next: "radicalization",
+            next: "jamalpur_riots",
           },
           {
             id: "neutral_distance",
             label:
               "Keep official distance and focus on law and order messaging.",
             effects: { local_stability: 2, legitimacy: -1, swadeshi_momentum: 1, reputation: 1 },
-            next: "radicalization",
+            next: "jamalpur_riots",
           },
           {
             id: "joint_council",
@@ -840,7 +823,7 @@
               "Propose a joint Hindu-Muslim advisory council for provincial policy.",
             effects: { legitimacy: 4, local_stability: 1, swadeshi_momentum: -1, reputation: -1 },
             set_flags: ["moderate_outreach"],
-            next: "radicalization",
+            next: "jamalpur_riots",
           },
           {
             id: "separate_electorates",
@@ -848,6 +831,39 @@
               "Support separate electorates for Muslims to reassure loyalists.",
             effects: { legitimacy: -2, local_stability: 1, swadeshi_momentum: 2, reputation: 2 },
             set_flags: ["muslim_loyalists"],
+            next: "jamalpur_riots",
+          },
+        ],
+      },
+      jamalpur_riots: {
+        date: "1907-03-10",
+        narration:
+          "**The Communal Fracture**\n\nThe unity of 1905 is cracking. In Comilla and Jamalpur, riots have erupted. A 'Red Pamphlet' is circulating, urging Muslims to boycott Hindu traders and zamindars. Swadeshi volunteers defending Hindu property are clashing with Muslim tenants.\n\nThe administration faces a dark choice: intervene impartially to stop the violence, or allow the communal wedge to deepen, effectively breaking the Swadeshi movement's back.",
+        learned:
+          "Communal violence often broke the momentum of nationalist movements, but at the cost of long-term social cohesion.",
+        options: [
+          {
+            id: "impartial_crackdown",
+            label:
+              "Deploy the army to crush rioters on both sides and ban the Red Pamphlet.",
+            effects: { local_stability: 5, legitimacy: 2, swadeshi_momentum: -1, reputation: 1 },
+            set_flags: ["hardline"],
+            next: "radicalization",
+          },
+          {
+            id: "strategic_inaction",
+            label:
+              "Order police to 'contain' rather than suppress, allowing the split to widen.",
+            effects: { local_stability: -3, legitimacy: -4, swadeshi_momentum: -5, reputation: 2 },
+            set_flags: ["divide_and_rule"],
+            next: "radicalization",
+          },
+          {
+            id: "peace_committees",
+            label:
+              "Form joint peace committees with Moderate and Muslim League leaders.",
+            effects: { legitimacy: 3, local_stability: 1, swadeshi_momentum: 1, reputation: -1 },
+            set_flags: ["moderate_outreach"],
             next: "radicalization",
           },
         ],
