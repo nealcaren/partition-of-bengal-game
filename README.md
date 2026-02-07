@@ -1,13 +1,13 @@
 # Divide and Rule: The Bengal Partition Crisis of 1905
 
-A browser-based, LLM-driven strategy narrative set during the run-up to the 1905 Partition of Bengal. You serve as the Viceroy’s private secretary, steering policy, holding the line against unrest, and deciding when to conciliate or coerce. Each turn acts like a dispatch cycle: you select a course of action, an AI Game Master updates the situation, and the province’s political climate shifts accordingly.
+A browser-based, scripted strategy narrative set during the run-up to the 1905 Partition of Bengal. You serve as the Viceroy’s private secretary, steering policy, holding the line against unrest, and deciding when to conciliate or coerce. Each turn acts like a dispatch cycle: you select a course of action, the scenario engine advances the timeline, and the province’s political climate shifts accordingly.
 
 ---
 
 ## Gameplay Highlights
 
 - **Multi-page prologue** drawn from archival context sets up the stakes before play begins.
-- **Dynamic narration** from the LLM reacts to your directives with historically grounded consequences.
+- **Rapid play** through fixed, historically grounded decision branches (3–4 options per turn).
 - **Four core stats** — Legitimacy, Local Stability, Swadeshi Momentum, Reputation — track your standing and display real-time warning colours plus trend arrows for every change.
 - **Period telegraph overlay** appears whenever a decision is en route to the Game Master, keeping the board readable while you wait.
 - **Persistence-free sessions** backed by an in-memory store; perfect for rapid iteration and classroom demos.
@@ -30,47 +30,48 @@ Survive unchanged through **31 December 1908** (the canonical end-date for the s
 
 | Layer      | Details                                                    |
 |------------|------------------------------------------------------------|
-| Backend    | Python 3.10+, FastAPI, Uvicorn                             |
-| LLM Client | OpenAI-compatible `chat.completions` API                   |
+| Engine     | Scripted scenario graph (fixed branches + stat effects)    |
 | Frontend   | Static HTML, modern CSS, vanilla ES modules-free JavaScript|
-| Data       | In-memory session store (easy to swap for Redis later)     |
+| Hosting    | Static (GitHub/Google Pages) or optional FastAPI server    |
 
 ---
 
 ## Getting Started
 
+### Static Hosting (Recommended)
+
+- Host the contents of `static/` on GitHub Pages, Google Pages, or any static host.
+- Point your host to `static/index.html` as the entry point.
+
+### Local Server (Optional)
+
 1. **Install dependencies**
    ```bash
-   pip install fastapi uvicorn openai pydantic
+   pip install fastapi uvicorn pydantic
    ```
 
-2. **Set your OpenAI-compatible API key**
-   ```bash
-   export OPENAI_API_KEY="sk-..."
-   ```
-
-3. **Run the server**
+2. **Run the server**
    ```bash
    uvicorn server:app --reload
    ```
 
-4. **Open the client**
+3. **Open the client**
    Visit `http://127.0.0.1:8000/` in your browser. The static frontend is served directly by FastAPI, so no extra build step is needed.
 
 ---
 
 ## Development Notes
 
-- **Opening vignette**: Served from `/api/vignette`, then rendered one page at a time before the game session starts.
-- **Game loop**: `/api/turn` expects `{ session_id, user_input }` and returns narration, updated state, and (when relevant) a `game_status` payload.
-- **Sessions**: `/api/new` seeds a fresh state; the current implementation stores everything in the `SESSIONS` dict.
+- **Opening vignette**: Stored in `static/content.js` and rendered one page at a time before play begins.
+- **Scenario graph**: Core narrative branches and stat effects live in `static/content.js`.
+- **Game loop**: Runs entirely in-browser; each choice advances the state immediately.
 - **Frontend enhancements**: stat tiles add colour-coded severity, plus ▲/▼ arrows that reflect whether the change helps or harms you (momentum drops are celebrated, spikes are flagged red).
 
 ---
 
 ## Testing & Diagnostics
 
-- Quick syntax check: `python -m compileall server.py opening_vignette.py`
+- Open `static/index.html` directly or via any static host and play through a full run.
 - Manual play-through remains the primary validation loop; consider integrating recorded transcripts or snapshot tests once the narrative settles.
 
 ---

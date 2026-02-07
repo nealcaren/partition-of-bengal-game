@@ -30,12 +30,8 @@
     <div id="narration" class="narration"></div>
     <div id="options" class="options"></div>
     <div id="statusMessage" class="status"></div>
-    <div class="inputbar">
-      <input id="userInput" type="text" placeholder="Type your decision (or click an option)…"/>
-      <button class="send" id="sendBtn">Send</button>
-    </div>
+    <div class="footer">Choose one directive to proceed.</div>
     <button class="secondary hidden" id="restartBtn" type="button">Start New Game</button>
-    <div class="footer">Tip: you can type a custom policy (e.g., “Convene moderate leaders and promise a review in 6 months”).</div>
   </div>
   <div id="waitingOverlay" class="waiting-overlay hidden" role="status" aria-live="assertive">
     <div class="waiting-dialog">
@@ -45,8 +41,11 @@
   </div>
 </main>
 
+<script src="content.js"></script>
 <script>
-const GAME_VERSION = 'v1.2.0';
+const STORY = window.BENGAL_STORY || {};
+const GAME_VERSION = STORY.GAME_VERSION || 'v2.1.0';
+const OPENING_VIGNETTE = window.OPENING_VIGNETTE || null;
 
 const FALLBACK_VIGNETTE_PAGES = [
   {
@@ -121,40 +120,7 @@ Every turn advances time; every decision shifts the numbers. Choose with care.`,
   }
 ];
 
-const STARTING_SCENARIO = `The breakfast files still sit before you:
-
-**1. Police Commissioner Bamfield's arrest warrants**
-Twelve names. Firebrands, agitators, men who speak of bombs and boycotts. Strike now, before they organize—but risk making martyrs.
-
-**2. Surendranath Banerjee's request for audience** 
-The moderate voice. Constitutional methods. Petitions and deputations. He wants to channel dissent through proper channels—if you'll listen.
-
-**3. Commerce Department proposal**
-₹50,000 in grants to Bengali textile mills. Undercut the *swadeshi* appeal by funding indigenous industry. But will it look like a bribe?
-
-The monsoon clouds are breaking. By afternoon, all Calcutta will know the Partition is confirmed.
-
-What do you do first?`;
-
-const STARTING_OPTIONS = [
-  "Authorize Commissioner Bamfield to execute the arrest warrants before the swadeshi meetings swell.",
-  "Grant Surendranath Banerjee an immediate audience to channel dissent through petitions.",
-  "Approve the ₹50,000 textile grant to blunt the boycott and placate loyal industry leaders.",
-  "Dispatch a trusted aide to College Square and Dacca to verify police intelligence."
-];
-
-const INITIAL_STATE = {
-  date: '1905-08-15',
-  legitimacy: 60,
-  local_stability: 60,
-  swadeshi_momentum: 40,
-  reputation: 50,
-  version: GAME_VERSION
-};
-
-let sessionId = null;
-let selectedOptionButton = null;
-let selectedOptionText = '';
+let gameState = null;
 let vignettePages = [];
 let currentVignetteIndex = 0;
 let gameReady = false;
@@ -411,22 +377,12 @@ function formatVignetteText(text) {
   return applyGlossaryMarkup(convertTimelineBlocks(markup));
 }
 
-async function loadVignette() {
-  try {
-    const res = await fetch('/api/vignette');
-    if (!res.ok) {
-      throw new Error('Unable to fetch opening briefing.');
-    }
-    const data = await res.json();
-    if (data && Array.isArray(data.pages) && data.pages.length) {
-      vignettePages = data.pages;
-      return;
-    }
-    throw new Error('Opening briefing is empty.');
-  } catch (err) {
-    console.warn('Falling back to bundled vignette:', err);
-    vignettePages = getFallbackVignette();
+function loadVignette() {
+  if (OPENING_VIGNETTE && Array.isArray(OPENING_VIGNETTE.pages) && OPENING_VIGNETTE.pages.length) {
+    vignettePages = OPENING_VIGNETTE.pages.map(page => ({ ...page }));
+    return;
   }
+  vignettePages = getFallbackVignette();
 }
 
 function showVignettePage(index) {
@@ -444,8 +400,6 @@ function showVignettePage(index) {
 }
 
 function resetInteractiveState() {
-  selectedOptionButton = null;
-  selectedOptionText = '';
   gameOver = false;
   const optionsBox = document.getElementById('options');
   if (optionsBox) {
@@ -455,15 +409,6 @@ function resetInteractiveState() {
   if (statusEl) {
     statusEl.textContent = '';
     statusEl.classList.remove('status-victory', 'status-defeat');
-  }
-  const input = document.getElementById('userInput');
-  if (input) {
-    input.value = '';
-    input.disabled = false;
-  }
-  const sendBtn = document.getElementById('sendBtn');
-  if (sendBtn) {
-    sendBtn.disabled = false;
   }
   const restartBtn = document.getElementById('restartBtn');
   if (restartBtn) {
@@ -476,47 +421,233 @@ function resetInteractiveState() {
   previousState = null;
 }
 
-async function beginGameFlow() {
+function beginGameFlow() {
   resetInteractiveState();
   gameReady = false;
   document.getElementById('vignettePanel').classList.add('hidden');
   document.getElementById('statsPanel').classList.remove('hidden');
   document.getElementById('gamePanel').classList.remove('hidden');
-  renderStats(INITIAL_STATE);
-  showStartingScenario();
-  const sendBtn = document.getElementById('sendBtn');
-  const input = document.getElementById('userInput');
-  sendBtn.disabled = true;
-  input.disabled = true;
-  try {
-    await createSession();
-    gameReady = true;
-    sendBtn.disabled = false;
-    input.disabled = false;
-  } catch (err) {
-    const statusEl = document.getElementById('statusMessage');
-    statusEl.textContent = 'The telegraph office reports a disruption: ' + err.message;
-    sendBtn.disabled = false;
-    input.disabled = false;
+  gameState = newGameState();
+  gameReady = true;
+  renderStats(gameState);
+  updateVersionBadge(gameState.version || GAME_VERSION);
+  sendTurn(null);
+}
+
+const STATE_KEYS = ['date', 'legitimacy', 'local_stability', 'swadeshi_momentum', 'reputation', 'version', 'last_action'];
+const END_DATE = '1908-12-31';
+
+function newGameState() {
+  const startScene = STORY.SCENES ? STORY.SCENES[STORY.START_SCENE_ID] : null;
+  const startDate = (startScene && startScene.date) ? startScene.date : '1905-08-12';
+  return {
+    date: startDate,
+    legitimacy: 60,
+    local_stability: 60,
+    swadeshi_momentum: 40,
+    reputation: 50,
+    version: GAME_VERSION,
+    last_action: '',
+    scene_id: STORY.START_SCENE_ID,
+    flags: [],
+    history: [],
+    log: [],
+    game_status: { status: 'ongoing', reason: '', message: '' }
+  };
+}
+
+function parseDate(dateStr) {
+  if (!dateStr) return null;
+  const parts = String(dateStr).split('-').map(Number);
+  if (parts.length !== 3 || parts.some(Number.isNaN)) return null;
+  return new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+}
+
+function formatDate(dateObj) {
+  if (!dateObj) return null;
+  const y = dateObj.getUTCFullYear();
+  const m = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(dateObj.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function clamp(value, lo = 0, hi = 100) {
+  const num = Number(value);
+  if (Number.isNaN(num)) return lo;
+  return Math.max(lo, Math.min(Math.round(num), hi));
+}
+
+function flagSet(state) {
+  return new Set((state && state.flags) ? state.flags : []);
+}
+
+function matchesConditions(item, flags, lastAction) {
+  const requiresFlags = new Set(item.requires_flags || []);
+  const forbidsFlags = new Set(item.forbids_flags || []);
+  const requiresLast = new Set(item.requires_last_action || []);
+  if (requiresFlags.size) {
+    for (const flag of requiresFlags) {
+      if (!flags.has(flag)) return false;
+    }
+  }
+  for (const flag of forbidsFlags) {
+    if (flags.has(flag)) return false;
+  }
+  if (requiresLast.size && !requiresLast.has(lastAction)) {
+    return false;
+  }
+  return true;
+}
+
+function selectVariant(scene, state) {
+  const variants = scene.variants || [];
+  if (!variants.length) return null;
+  const flags = flagSet(state);
+  const lastAction = state.last_action;
+  for (const variant of variants) {
+    if (matchesConditions(variant, flags, lastAction)) {
+      return variant;
+    }
+  }
+  return variants[variants.length - 1];
+}
+
+function selectOptions(scene, state) {
+  const optionSets = scene.option_sets || [];
+  const flags = flagSet(state);
+  const lastAction = state.last_action;
+  for (const set of optionSets) {
+    if (matchesConditions(set, flags, lastAction)) {
+      const options = set.options || [];
+      return options.filter(opt => matchesConditions(opt, flags, lastAction));
+    }
+  }
+  const options = scene.options || [];
+  return options.filter(opt => matchesConditions(opt, flags, lastAction));
+}
+
+function ensureSceneDate(state, sceneId) {
+  const scene = STORY.SCENES ? STORY.SCENES[sceneId] : null;
+  if (!scene || !scene.date) return;
+  const sceneDate = parseDate(scene.date);
+  const currentDate = parseDate(state.date);
+  if (sceneDate && (!currentDate || sceneDate > currentDate)) {
+    state.date = formatDate(sceneDate);
   }
 }
 
-async function createSession() {
-  const res = await fetch('/api/new');
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || 'Unable to open a new briefing docket.');
+function buildSceneResponse(sceneId, state) {
+  const scene = STORY.SCENES ? STORY.SCENES[sceneId] : null;
+  if (!scene) {
+    return { narration: "The file cabinet is empty; no further instructions are available.", options: [], learned: "" };
   }
-  const data = await res.json();
-  sessionId = data.session_id;
+  ensureSceneDate(state, sceneId);
+  const variant = selectVariant(scene, state) || {};
+  const narration = variant.narration || scene.narration || '';
+  const learned = variant.learned || scene.learned || '';
+  const options = selectOptions(scene, state).map(opt => ({ id: opt.id, label: opt.label }));
+  return { narration, learned, options };
 }
 
-function showStartingScenario() {
-  const narrationEl = document.getElementById('narration');
-  narrationEl.innerHTML = formatVignetteText(STARTING_SCENARIO);
-  populateOptions(STARTING_OPTIONS);
-  updateVersionBadge(INITIAL_STATE.version || GAME_VERSION);
-  scrollToTop();
+function applyOption(state, option) {
+  const effects = option.effects || {};
+  Object.keys(effects).forEach(key => {
+    const current = Number(state[key] || 0);
+    if (!Number.isNaN(current)) {
+      state[key] = clamp(current + Number(effects[key] || 0));
+    }
+  });
+  const flags = flagSet(state);
+  (option.set_flags || []).forEach(flag => flags.add(flag));
+  (option.clear_flags || []).forEach(flag => flags.delete(flag));
+  state.flags = Array.from(flags);
+}
+
+function findOption(sceneId, choiceId, state) {
+  const scene = STORY.SCENES ? STORY.SCENES[sceneId] : null;
+  if (!scene) return null;
+  const options = selectOptions(scene, state);
+  return options.find(opt => opt.id === choiceId) || null;
+}
+
+function buildOutcomeNarration(reason) {
+  return (STORY.OUTCOME_TEXT && STORY.OUTCOME_TEXT[reason]) ? STORY.OUTCOME_TEXT[reason] : '';
+}
+
+function checkGameStatus(state) {
+  const legitimacy = state.legitimacy;
+  const stability = state.local_stability;
+  const swadeshi = state.swadeshi_momentum;
+  const dateObj = parseDate(state.date);
+  if (typeof legitimacy === 'number' && legitimacy < 20) {
+    return { status: 'defeat', reason: 'legitimacy_collapse', message: 'Legitimacy has collapsed beneath acceptable levels; Bengal no longer trusts the Raj\'s word.' };
+  }
+  if (typeof stability === 'number' && stability < 20) {
+    return { status: 'defeat', reason: 'stability_collapse', message: 'Local unrest spirals beyond control; the machinery of governance breaks under the strain.' };
+  }
+  if (typeof swadeshi === 'number' && swadeshi > 85) {
+    return { status: 'defeat', reason: 'swadeshi_unstoppable', message: 'The swadeshi movement achieves unstoppable momentum, making the partition untenable.' };
+  }
+  const endDate = parseDate(END_DATE);
+  if (dateObj && endDate && dateObj >= endDate) {
+    return { status: 'victory', reason: 'survived', message: 'You navigated the turbulence through the end of 1908 without catastrophe, keeping imperial directives intact.' };
+  }
+  return { status: 'ongoing', reason: '', message: '' };
+}
+
+function sanitizeState(state) {
+  const sanitized = {};
+  STATE_KEYS.forEach(key => {
+    sanitized[key] = state[key];
+  });
+  return sanitized;
+}
+
+function advanceTurn(choiceId) {
+  if (!gameState) return null;
+  const alreadyOver = gameState.game_status && (gameState.game_status.status === 'victory' || gameState.game_status.status === 'defeat');
+  let data;
+  if (alreadyOver) {
+    data = buildSceneResponse(gameState.scene_id, gameState);
+    data.options = [];
+    const reason = gameState.game_status ? gameState.game_status.reason : '';
+    const outcomeText = buildOutcomeNarration(reason);
+    if (outcomeText) {
+      data.narration = `${data.narration || ''}\n\n${outcomeText}`.trim();
+    }
+  } else {
+    if (choiceId) {
+      const option = findOption(gameState.scene_id, choiceId, gameState);
+      if (!option) {
+        throw new Error('Unknown option for current scene.');
+      }
+      applyOption(gameState, option);
+      gameState.last_action = choiceId;
+      gameState.history.push(choiceId);
+      gameState.scene_id = option.next || STORY.START_SCENE_ID;
+    }
+    ensureSceneDate(gameState, gameState.scene_id);
+    data = buildSceneResponse(gameState.scene_id, gameState);
+  }
+
+  if (data && data.narration) {
+    gameState.log.push(data.narration);
+  }
+
+  const statusInfo = checkGameStatus(gameState);
+  gameState.game_status = statusInfo;
+
+  if (statusInfo.status !== 'ongoing' && !alreadyOver) {
+    const outcome = buildOutcomeNarration(statusInfo.reason);
+    if (outcome) {
+      data.narration = `${data.narration || ''}\n\n${outcome}`.trim();
+    }
+    data.options = [];
+  }
+
+  data.state = sanitizeState(gameState);
+  data.game_status = statusInfo;
+  return data;
 }
 
 function renderStats(state) {
@@ -633,39 +764,40 @@ function renderTurn(data) {
     updateVersionBadge(data.state.version || GAME_VERSION);
   }
   populateOptions(data.options || []);
-  document.getElementById('userInput').value = '';
   scrollToTop();
+}
+
+function normalizeOption(option) {
+  if (!option) return null;
+  if (typeof option === 'string') {
+    return { id: option, label: option };
+  }
+  if (typeof option === 'object') {
+    const id = option.id || option.label || option.text;
+    const label = option.label || option.text || option.id || '';
+    if (!id || !label) return null;
+    return { id, label };
+  }
+  return null;
 }
 
 function populateOptions(options) {
   const optBox = document.getElementById('options');
   optBox.innerHTML = '';
-  selectedOptionButton = null;
-  selectedOptionText = '';
-  (options || []).forEach(txt => {
+  (options || []).forEach(option => {
+    const normalized = normalizeOption(option);
+    if (!normalized) return;
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'option';
-    b.textContent = txt;
-    b.onclick = () => selectOption(b, txt);
+    b.textContent = normalized.label;
+    b.onclick = () => sendTurn(normalized.id);
     optBox.appendChild(b);
   });
 }
 
-function selectOption(button, text) {
-  const optionButtons = document.querySelectorAll('#options button.option');
-  optionButtons.forEach(btn => btn.classList.remove('selected'));
-  button.classList.add('selected');
-  selectedOptionButton = button;
-  selectedOptionText = text;
-  const input = document.getElementById('userInput');
-  input.value = text;
-}
-
 function setWaiting(isWaiting, message = '') {
   const statusEl = document.getElementById('statusMessage');
-  const sendBtn = document.getElementById('sendBtn');
-  const input = document.getElementById('userInput');
   const optionButtons = document.querySelectorAll('#options button.option');
 
   if (isWaiting) {
@@ -679,13 +811,8 @@ function setWaiting(isWaiting, message = '') {
     if (waitingOverlay) {
       waitingOverlay.classList.remove('hidden');
     }
-    sendBtn.disabled = true;
-    input.disabled = true;
     optionButtons.forEach(btn => {
       btn.disabled = true;
-      if (btn === selectedOptionButton) {
-        btn.classList.add('selected');
-      }
     });
   } else {
     if (waitingOverlay) {
@@ -697,8 +824,6 @@ function setWaiting(isWaiting, message = '') {
     }
     if (!gameOver) {
       statusEl.classList.remove('status-victory', 'status-defeat');
-      sendBtn.disabled = false;
-      input.disabled = false;
       optionButtons.forEach(btn => {
         btn.disabled = false;
       });
@@ -706,28 +831,18 @@ function setWaiting(isWaiting, message = '') {
   }
 }
 
-async function sendTurn(user_input, options = {}) {
-  if (!gameReady || !sessionId || gameOver) {
+async function sendTurn(choiceId, options = {}) {
+  if (!gameReady || gameOver) {
     return false;
   }
-  const { showWaiting = true } = options;
-  const payload = { session_id: sessionId, user_input };
+  const { showWaiting = false } = options;
   if (showWaiting) {
     setWaiting(true);
   }
   let success = false;
   let followupMessage = '';
   try {
-    const res = await fetch('/api/turn', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) {
-      const t = await res.text();
-      throw new Error(t || 'Request failed');
-    }
-    const data = await res.json();
+    const data = advanceTurn(choiceId);
     renderTurn(data);
     handleGameConclusion(data.game_status);
     success = true;
@@ -754,10 +869,6 @@ function handleGameConclusion(gameStatus) {
   statusEl.textContent = prefix + (gameStatus.message || '');
   statusEl.classList.add(gameStatus.status === 'victory' ? 'status-victory' : 'status-defeat');
 
-  const sendBtn = document.getElementById('sendBtn');
-  const input = document.getElementById('userInput');
-  sendBtn.disabled = true;
-  input.disabled = true;
   document.querySelectorAll('#options button.option').forEach(btn => {
     btn.disabled = true;
   });
@@ -774,7 +885,7 @@ function advanceVignette() {
 
 function restartGame() {
   resetInteractiveState();
-  sessionId = null;
+  gameState = null;
   gameReady = false;
   document.getElementById('gamePanel').classList.add('hidden');
   document.getElementById('statsPanel').classList.add('hidden');
@@ -785,35 +896,11 @@ function restartGame() {
 
 document.getElementById('vignetteNext').addEventListener('click', advanceVignette);
 
-document.getElementById('sendBtn').addEventListener('click', async () => {
-  const inputEl = document.getElementById('userInput');
-  const originalText = inputEl.value;
-  const text = originalText.trim();
-  const optionText = selectedOptionText.trim();
-  const inputToSend = text || optionText;
-  if (!inputToSend) return;
-  const wasSuccessful = await sendTurn(inputToSend);
-  if (wasSuccessful) {
-    inputEl.value = '';
-  } else {
-    inputEl.value = originalText;
-  }
-});
-
-document.getElementById('userInput').addEventListener('input', (event) => {
-  if (!selectedOptionButton) return;
-  if (event.target.value.trim() !== selectedOptionText.trim()) {
-    selectedOptionButton.classList.remove('selected');
-    selectedOptionButton = null;
-    selectedOptionText = '';
-  }
-});
-
 document.getElementById('restartBtn').addEventListener('click', restartGame);
 
-(async function init() {
+(function init() {
   updateVersionBadge(GAME_VERSION);
-  await loadVignette();
+  loadVignette();
   if (!vignettePages.length) {
     vignettePages = getFallbackVignette();
   }
